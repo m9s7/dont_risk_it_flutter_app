@@ -27,50 +27,43 @@ class _MyHomePageState extends State<MyHomePage> {
   //TODO: maybe add instead of a submit button there is a -> to go to the next field in the form
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            margin: EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              // child: Container(
-              //HACK: I want my column to expand as much as it can
-              // height: MediaQuery.of(context).size.height * 0.7,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  _buildAtkField(),
-                  SizedBox(height: 30),
-                  _buildSurField(),
-                  SizedBox(height: 30),
-                  _buildDefField(),
-                  SizedBox(height: 100),
-                  ElevatedButton(
-                    child: Text("Action!"),
-                    onPressed: () {
-                      if (!_formKey.currentState.validate()) return;
-                      _formKey.currentState.save();
-                      //TODO: send data to the next page
-                      print("\n-------");
-                      print(atkVal);
-                      print(defVal);
-                      print(surVal);
-                      print(MediaQuery.of(context).size.height);
-                      print("-------\n");
-                    },
-                  ),
-                ],
-              ),
+    return Center(
+      child: SingleChildScrollView(
+        child: Container(
+          margin: EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            // child: Container(
+            //HACK: I want my column to expand as much as it can
+            // height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _buildAtkField(),
+                SizedBox(height: 30),
+                _buildSurField(),
+                SizedBox(height: 30),
+                _buildDefField(),
+                SizedBox(height: 100),
+                ElevatedButton(
+                  child: Text("Action!"),
+                  onPressed: () {
+                    if (!_formKey.currentState.validate()) return;
+                    _formKey.currentState.save();
+                    //TODO: send data to the next page
+                    print("\n-------");
+                    print(atkVal);
+                    print(defVal);
+                    print(surVal);
+                    print(MediaQuery.of(context).size.height);
+                    print("-------\n");
+                  },
+                ),
+              ],
             ),
-            // ),
           ),
+          // ),
         ),
       ),
     );
