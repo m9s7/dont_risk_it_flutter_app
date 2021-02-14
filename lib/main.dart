@@ -1,6 +1,5 @@
-import 'package:Dont_risk_it_flutter_app/src/home_page.dart';
-import 'package:Dont_risk_it_flutter_app/src/results_page.dart';
 import 'package:flutter/material.dart';
+import 'package:Dont_risk_it_flutter_app/src/home_page.dart';
 
 void main() {
   runApp(MyApp());

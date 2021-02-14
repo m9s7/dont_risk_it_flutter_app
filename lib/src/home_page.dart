@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 // That's it for now, things I plan to do
 //  - make a background image of little tanks at 45 degrees with different soft colors
 //  - wrap this bitch up in a stack but I think that will fuck up the keyboard interaction and what not, fucking flutter lots of work
-//  - remove the app bar, add the sandwitch, clasic shit looks great
 //  - fix the button to look better
 //  - change the theme
 
@@ -42,9 +41,6 @@ class _MyHomePageState extends State<MyHomePage> {
             margin: EdgeInsets.all(24),
             child: Form(
               key: _formKey,
-              // child: Container(
-              //HACK: I want my column to expand as much as it can
-              // height: MediaQuery.of(context).size.height * 0.7,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 mainAxisSize: MainAxisSize.min,
@@ -86,6 +82,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  /*
+    ovo moraju da budu 3 funkcije
+    - ne moze jedna jer onda pravi istu instancu za sva 3 polja i ne moze da se zaobidje sa new
+    - ako ih odvojis u klasu, ne mozes da vratis vrednost atkVal ili koja vec se updateuje jer nemas pass by ref
+    The solution is to learn BLOC, I am defieneatly not doing another app in flutter without it
+  */
 
   // TODO: limit atk tanks number (maxLength: 3) or change the algorithm or add simulations (I don't even know how that's done)
   Widget _buildAtkField() {
@@ -130,7 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // TODO: kad posaljes podatke ako je sur > atk samo stavi da je sansa za to 0, mozda to nekako proveriti ovde
   Widget _buildSurField() {
     return TextFormField(
       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -143,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
       validator: (String value) {
         int intVal = int.tryParse(value);
         if (intVal == null || intVal < 1)
-          return 'You must have at least 1 tank after an attack';
+          return 'You must have at least 2 tanks left';
         return null;
       },
       onSaved: (String value) {

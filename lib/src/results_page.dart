@@ -27,17 +27,15 @@ class _ResultsPageState extends State<ResultsPage> {
     sur = widget.sur;
 
     if (sur == 1) {
-      standardEngine = ClassicEngine(atk: atk, def: def, tanksLeft: 1);
+      standardEngine = ClassicEngine(atk: atk, def: def, sur: 1);
       tanksLeftEngine = standardEngine;
     } else {
-      standardEngine = ClassicEngine(atk: atk, def: def, tanksLeft: 1);
-      tanksLeftEngine = ClassicEngine(atk: atk, def: def, tanksLeft: sur);
+      standardEngine = ClassicEngine(atk: atk, def: def, sur: 1);
+      tanksLeftEngine = ClassicEngine(atk: atk, def: def, sur: sur);
     }
 
     winChance = standardEngine.getResult(atk, def);
-    print(winChance);
     winChanceWithSur = tanksLeftEngine.getResult(atk, def);
-    print(winChanceWithSur);
   }
 
   @override
