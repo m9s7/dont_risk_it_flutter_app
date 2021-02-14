@@ -1,12 +1,17 @@
-import 'dart:math';
-import 'package:Dont_risk_it_flutter_app/src/engine/constant.dart';
+import 'dart:math' show min;
+import 'constant.dart';
 
 // void main() {
-//   var engine1 = ClassicEngine(atk: 5, def: 3, tanksLeft: 2);
+//   var engineClassic = ClassicEngine(atk: 3, def: 1, sur: 1);
+//   var engineWithSur = ClassicEngine(atk: 3, def: 1, sur: 3);
 
-//   var res = engine1.getResult(2, 3);
-//   engine1.writeOutAtkWinChanceTable();
-//   print(res);
+//   print('------start------');
+//   engineClassic.writeOutAtkWinChanceTable();
+//   print(engineClassic.getResult(3, 1));
+
+//   engineWithSur.writeOutAtkWinChanceTable();
+//   print(engineWithSur.getResult(3, 1));
+//   print('-------end-------');
 // }
 
 /*
@@ -14,25 +19,32 @@ import 'package:Dont_risk_it_flutter_app/src/engine/constant.dart';
 */
 
 class ClassicEngine {
+  /* 
+    atk is the number of tanks on the territory that is attacking
+    def is the number of tanks on the territory that is defending
+    sur is the number of tanks that the attacker wishes to have after the attack
+      the minimum number for it is 1 because win or lose 1 tank has to stay on the attacking territory
+      if you are going to win it's acctualy 2, one tank to move to a new territory and one to stay on the old
+  */
   final int atk;
   final int def;
-  final int tanksLeft;
+  final int sur;
 
   int _maxRow;
   int _maxCol;
 
-  final SingleRollScenario _singleRollChances = SingleRollScenario();
-
-  // atkWinChanceTable table is the chance of atk winning against def with atleast tanksLeft remaining.
-  // atkWinChanceTable[ATK-tanksLeft][DEF]
+  // atkWinChanceTable table is the chance of atk winning against def with atleast sur remaining.
+  // atkWinChanceTable[ATK-sur][DEF]
   List<List<double>> _atkWinChanceTable;
 
-  ClassicEngine({this.atk, this.def, this.tanksLeft}) {
+  ClassicEngine({this.atk, this.def, this.sur}) {
     _init();
   }
 
   void _init() {
-    _maxRow = atk - tanksLeft + 1;
+    if (atk < sur) return;
+
+    _maxRow = atk - sur + 1;
     _maxCol = def + 1;
 
     _atkWinChanceTable = List<List<double>>(_maxRow);
@@ -41,157 +53,82 @@ class ClassicEngine {
     }
 
     _fillOutAtkWinChanceTable();
-    writeOutAtkWinChanceTable();
-    // print(_singleRollChances.test());
   }
 
-  int _getNumOfDefDice(int def) {
-    /*
-      It's assumed you always defend with maximum number of dice possible
-    */
-    if (def >= 3) return 3;
-    return def;
-  }
-
-  int _getNumOfAtkDice(int atk, int tanksLeft) {
-    /*
-      TanksLeft is always atleast one because if you lose, one tank has to stay to indicate it's still your territory
-      The maximum that TanksLeft can be, is the number of tanks you have on the territory,
-      that is the chance that you win without losing any tanks in the fight
-    */
-    if (atk < 2) return 0;
-
-    if (tanksLeft >= 4) return 3;
-
-    if (tanksLeft == 3 && atk == 3) return 2;
-    if (tanksLeft == 3 && atk > 3) return 3;
-
-    if (tanksLeft == 2 && atk == 2) return 1;
-    if (tanksLeft == 2 && atk == 3) return 2;
-    if (tanksLeft == 2 && atk >= 4) return 3;
-
-    if (tanksLeft == 1 && atk == 2) return 1;
-    if (tanksLeft == 1 && atk == 3) return 2;
-    if (tanksLeft == 1 && atk >= 4) return 3;
-
-    throw Exception('_numberOfAtkDice gone terribly wrong.');
-  }
-
-  int _getNumOfTotalTanksToBeLostInOneDiceRoll(
-    int numOfAtkDice,
-    int numOfDefDice,
-  ) {
-    if (numOfAtkDice >= 3 && numOfDefDice >= 3) {
-      return 3;
-    } else {
-      return min(numOfAtkDice, numOfDefDice);
-    }
-  }
-
-  int _getMaxNumOfAtkTanksToDiePerRollToMaintainTanksLeft(
-    int atk,
-    int tanksLeft,
-  ) {
-    if (atk - tanksLeft >= 3) {
-      return 3;
-    } else {
-      return atk - tanksLeft;
-    }
-  }
-
-  int _getScenario(int numOfAtkDice, int numOfDefDice) {
-    if (numOfAtkDice == 1 && numOfDefDice == 1) {
-      return 0;
-    } else if (numOfAtkDice == 2 && numOfDefDice == 1) {
-      return 1;
-    } else if (numOfAtkDice == 3 && numOfDefDice == 1) {
-      return 2;
-    } else if (numOfAtkDice == 1 && numOfDefDice == 2) {
-      return 3;
-    } else if (numOfAtkDice == 1 && numOfDefDice == 3) {
-      return 4;
-    } else if (numOfAtkDice == 2 && numOfDefDice == 2) {
-      return 5;
-    } else if (numOfAtkDice == 3 && numOfDefDice == 2) {
-      return 6;
-    } else if (numOfAtkDice == 2 && numOfDefDice == 3) {
-      return 7;
-    } else if (numOfAtkDice == 3 && numOfDefDice == 3) return 8;
-
-    throw Exception('_getScenario gone terribly wrong.');
-  }
-
-  void writeOutAtkWinChanceTable() {
-    for (var oneRow in _atkWinChanceTable) {
-      print(oneRow.toString());
-    }
-  }
+  /*
+    These are the variables that the algorithm uses, they will be updated every time we change the number of defenders
+    Declared outside because I can't pass them by ref in dart and i want to because of readability
+  */
+  int numOfAtkDice;
+  int numOfDefDice;
+  int maxAtkTanksToDiePerRoll;
+  int numOfTotalTanksToBeLostInOneDiceRoll;
 
   void _fillOutAtkWinChanceTable() {
-    // Calling the algorithm that fills out the atkWinChanceTable
-
-    // upisujemo 1 u nultu kolonu jer je tu uvek def = 0 pa je verovatnoca za pobedu 1 (100%)
+    // At the first column the number of defenders is zero so the probability for atk to win is 1
     for (var i = 0; i < _maxRow; i++) {
       _atkWinChanceTable[i][0] = 1;
     }
 
-    int numOfAtkDice;
-    int numOfDefDice;
-    int maxNumOfAtkTanksToDiePerRoll;
-    int numOfTotalTanksToBeLostInOneDiceRoll;
+    for (var currDef = 1; currDef < _maxCol; currDef++) {
+      for (var currAtk = 0; currAtk < _maxRow; currAtk++) {
+        // Update numOfAtkDice, numOfDefDice, maxAtkTanksToDiePerRoll, numOfTotalTanksToBeLostInOneDiceRoll
+        updateAlgorithmVars(currAtk, currDef);
 
-    var d = 1;
-    while (d < _maxCol) {
-      for (var i = 0; i < _maxRow; i++) {
-        /*
-          Init all state values needed for this scenario
-        */
-        numOfAtkDice = _getNumOfAtkDice(i + tanksLeft, tanksLeft);
+        // If the numOfAtkDice is 0 the atk can't win in this scenario
         if (numOfAtkDice == 0) {
-          _atkWinChanceTable[i][d] = 0;
+          _atkWinChanceTable[currAtk][currDef] = 0;
           continue;
         }
-
-        numOfDefDice = _getNumOfDefDice(d);
-
-        maxNumOfAtkTanksToDiePerRoll =
-            _getMaxNumOfAtkTanksToDiePerRollToMaintainTanksLeft(
-          i + tanksLeft,
-          tanksLeft,
-        );
-
-        numOfTotalTanksToBeLostInOneDiceRoll =
-            _getNumOfTotalTanksToBeLostInOneDiceRoll(
-          numOfAtkDice,
-          numOfDefDice,
-        );
 
         /*
           Construct current table field based on previous ones and the constant probabilites of single roll outcomes that lead to the current one  
         */
         var n = min(
-          maxNumOfAtkTanksToDiePerRoll,
+          maxAtkTanksToDiePerRoll,
           numOfTotalTanksToBeLostInOneDiceRoll,
         );
 
         for (var j = 0; j <= n; j++) {
-          _atkWinChanceTable[i][d] += (_atkWinChanceTable[i - j]
-                  [d - numOfTotalTanksToBeLostInOneDiceRoll + j] *
-              _singleRollChances.getWinChance(
-                scenario: _getScenario(numOfAtkDice, numOfDefDice),
+          _atkWinChanceTable[currAtk]
+              [currDef] += (_atkWinChanceTable[currAtk - j]
+                  [currDef - numOfTotalTanksToBeLostInOneDiceRoll + j] *
+              SingleRoll.getWinChance(
+                scenario: SingleRoll.getScenario(numOfAtkDice, numOfDefDice),
                 tanksLost: j,
               ));
         }
-        /*
-          On to the next one
-        */
       }
-      d++;
     }
   }
 
+  /*
+    Can't pass by reference in dart
+  */
+  void updateAlgorithmVars(int i, int d) {
+    numOfAtkDice = SingleRoll.getNumOfAtkDice(i + sur, sur);
+
+    numOfDefDice = SingleRoll.getNumOfDefDice(d);
+
+    maxAtkTanksToDiePerRoll =
+        SingleRoll.getMaxAtkTanksToDiePerRollToMaintainSur(
+      i + sur,
+      sur,
+    );
+
+    numOfTotalTanksToBeLostInOneDiceRoll =
+        SingleRoll.getNumOfTotalTanksToBeLostInOneDiceRoll(
+      numOfAtkDice,
+      numOfDefDice,
+    );
+  }
+
+  void writeOutAtkWinChanceTable() {
+    for (var oneRow in _atkWinChanceTable) print(oneRow.toString());
+  }
+
   double getResult(int atk, int def) {
-    if (atk < tanksLeft) return 0.0;
-    return _atkWinChanceTable[atk - tanksLeft][def] * 100;
+    if (atk < sur) return 0.0;
+    return _atkWinChanceTable[atk - sur][def] * 100;
   }
 }

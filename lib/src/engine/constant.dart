@@ -1,8 +1,11 @@
-class SingleRollScenario {
-  const SingleRollScenario();
+import 'dart:math' show min;
 
-  // _singleRollScenarioWithTanksLostChances[scenario][tanks_lost] = chance
-  static const List<List<double>> _singleRollScenarioWithTanksLostChances = [
+class SingleRoll {
+  /*
+    Table holds the probability that in a given single roll scenario (1v1, 1v2, 2v1.. 3v3) you lose 0, 1, 2 or 3 tanks 
+    USAGE: _singleRoll[scenario][tanks_lost] = probability
+  */
+  static const List<List<double>> _singleRoll = [
     [
       15.0 / 36,
       21.0 / 36,
@@ -46,24 +49,86 @@ class SingleRollScenario {
     ] // 3v3
   ];
 
-  double getWinChance({int scenario, int tanksLost}) {
-    return _singleRollScenarioWithTanksLostChances[scenario][tanksLost];
+  static double getWinChance({int scenario, int tanksLost}) {
+    return _singleRoll[scenario][tanksLost];
+  }
+
+  static int getScenario(int numOfAtkDice, int numOfDefDice) {
+    if (numOfAtkDice == 1 && numOfDefDice == 1) {
+      return 0;
+    } else if (numOfAtkDice == 2 && numOfDefDice == 1) {
+      return 1;
+    } else if (numOfAtkDice == 3 && numOfDefDice == 1) {
+      return 2;
+    } else if (numOfAtkDice == 1 && numOfDefDice == 2) {
+      return 3;
+    } else if (numOfAtkDice == 1 && numOfDefDice == 3) {
+      return 4;
+    } else if (numOfAtkDice == 2 && numOfDefDice == 2) {
+      return 5;
+    } else if (numOfAtkDice == 3 && numOfDefDice == 2) {
+      return 6;
+    } else if (numOfAtkDice == 2 && numOfDefDice == 3) {
+      return 7;
+    } else if (numOfAtkDice == 3 && numOfDefDice == 3) return 8;
+
+    throw Exception('_getScenario gone terribly wrong.');
+  }
+
+  /*
+      sur is always atleast one because if you lose, one tank has to stay to indicate it's still your territory
+      The maximum that sur can be, is the number of tanks you have on the territory,
+      that is the chance that you win without losing any tanks in the fight
+  */
+  static int getNumOfAtkDice(int atk, int sur) {
+    if (atk < 2) return 0;
+
+    if (sur >= 4) return 3;
+
+    if (sur == 3 && atk == 3) return 2;
+    if (sur == 3 && atk > 3) return 3;
+
+    if (sur == 2 && atk == 2) return 1;
+    if (sur == 2 && atk == 3) return 2;
+    if (sur == 2 && atk >= 4) return 3;
+
+    if (sur == 1 && atk == 2) return 1;
+    if (sur == 1 && atk == 3) return 2;
+    if (sur == 1 && atk >= 4) return 3;
+
+    throw Exception('_numberOfAtkDice gone wrong \n atk: $atk \n sur: $sur');
+  }
+
+  static int getNumOfDefDice(int def) {
+    /*
+      It's assumed you always defend with maximum number of dice possible
+    */
+    if (def >= 3) return 3;
+    return def;
+  }
+
+  static int getMaxAtkTanksToDiePerRollToMaintainSur(int atk, int sur) {
+    if (atk - sur >= 3) {
+      return 3;
+    } else {
+      return atk - sur;
+    }
+  }
+
+  static int getNumOfTotalTanksToBeLostInOneDiceRoll(
+    int numOfAtkDice,
+    int numOfDefDice,
+  ) {
+    if (numOfAtkDice >= 3 && numOfDefDice >= 3) {
+      return 3;
+    } else {
+      return min(numOfAtkDice, numOfDefDice);
+    }
   }
 
   bool test() {
-    for (var row in _singleRollScenarioWithTanksLostChances) {
-      if (sum(row) != 1) {
-        return false;
-      }
-    }
+    for (var row in _singleRoll)
+      if (row.fold(0, (prev, curr) => prev + curr) != 1) return false;
     return true;
-  }
-
-  double sum(List<double> row) {
-    var rowSum = 0.0;
-    for (var element in row) {
-      rowSum += element;
-    }
-    return rowSum;
   }
 }
