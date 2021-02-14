@@ -31,17 +31,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Scaffold(
-        resizeToAvoidBottomPadding: false,
-        resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          elevation: 0.0,
-          backgroundColor: Colors.transparent,
-        ),
-        drawer: Drawer(),
-        // body: MyHomePage(title: "Don't risk it"),
-        body: ResultsPage(),
-      ),
+      home: MyHomePage(title: "Don't risk it"),
     );
   }
 }
