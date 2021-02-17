@@ -75,11 +75,6 @@ class SingleRoll {
     throw Exception('_getScenario gone terribly wrong.');
   }
 
-  /*
-      sur is always atleast one because if you lose, one tank has to stay to indicate it's still your territory
-      The maximum that sur can be, is the number of tanks you have on the territory,
-      that is the chance that you win without losing any tanks in the fight
-  */
   static int getNumOfAtkDice(int atk, int sur) {
     if (atk < 2) return 0;
 

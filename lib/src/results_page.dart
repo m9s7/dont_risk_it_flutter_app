@@ -12,30 +12,32 @@ class ResultsPage extends StatefulWidget {
 }
 
 class _ResultsPageState extends State<ResultsPage> {
-  int atk, def, sur;
   ClassicEngine standardEngine;
   ClassicEngine tanksLeftEngine;
 
-  double winChance;
-  double winChanceWithSur;
+  int atk, def;
+  double winChance, winChanceWithSur;
+
+  int maxTanksToDieInDiceRoll;
+  int maxTanksToDieInDiceRollWithSur;
 
   @override
   void initState() {
     super.initState();
+
     atk = widget.atk;
     def = widget.def;
-    sur = widget.sur;
 
-    if (sur == 1) {
+    if (widget.sur == 1) {
       standardEngine = ClassicEngine(atk: atk, def: def, sur: 1);
       tanksLeftEngine = standardEngine;
     } else {
       standardEngine = ClassicEngine(atk: atk, def: def, sur: 1);
-      tanksLeftEngine = ClassicEngine(atk: atk, def: def, sur: sur);
+      tanksLeftEngine = ClassicEngine(atk: atk, def: def, sur: widget.sur);
     }
 
-    winChance = standardEngine.getResult(atk, def);
-    winChanceWithSur = tanksLeftEngine.getResult(atk, def);
+    winChance = standardEngine.getResult();
+    winChanceWithSur = tanksLeftEngine.getResult();
   }
 
   @override
@@ -68,9 +70,7 @@ class _ResultsPageState extends State<ResultsPage> {
                     _getNumberText(
                         winChance.toStringAsFixed(widget.decimalPoint) + "%"),
                     SizedBox(height: 20.0),
-                    _getText("Your chances to win with $sur " +
-                        (sur == 1 ? "tank" : "tanks") +
-                        " left"),
+                    _getText("Your chances to win with ${widget.sur} left"),
                     _getNumberText(
                         winChanceWithSur.toStringAsFixed(widget.decimalPoint) +
                             "%"),
@@ -105,10 +105,26 @@ class _ResultsPageState extends State<ResultsPage> {
                         buttonPadding: EdgeInsets.all(0.0),
                         alignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ElevatedButton(onPressed: () {}, child: Text("0")),
-                          ElevatedButton(onPressed: () {}, child: Text("1")),
-                          ElevatedButton(onPressed: () {}, child: Text("2")),
-                          ElevatedButton(onPressed: () {}, child: Text("3")),
+                          ElevatedButton(
+                              onPressed: standardEngine.isValidUpdate(0)
+                                  ? () => btnUpdateFunction(0)
+                                  : null,
+                              child: Text("0")),
+                          ElevatedButton(
+                              onPressed: standardEngine.isValidUpdate(1)
+                                  ? () => btnUpdateFunction(1)
+                                  : null,
+                              child: Text("1")),
+                          ElevatedButton(
+                              onPressed: standardEngine.isValidUpdate(2)
+                                  ? () => btnUpdateFunction(2)
+                                  : null,
+                              child: Text("2")),
+                          ElevatedButton(
+                              onPressed: standardEngine.isValidUpdate(3)
+                                  ? () => btnUpdateFunction(3)
+                                  : null,
+                              child: Text("3")),
                         ],
                       ),
                     ),
@@ -153,5 +169,20 @@ class _ResultsPageState extends State<ResultsPage> {
         maxLines: 1,
       ),
     );
+  }
+
+  void updateDisplayValues() {
+    setState(() {
+      atk = standardEngine.getAtk();
+      def = standardEngine.getDef();
+      winChance = standardEngine.getResult();
+      winChanceWithSur = tanksLeftEngine.getResult();
+    });
+  }
+
+  void btnUpdateFunction(int btnVal) {
+    standardEngine.updateValues(btnVal);
+    tanksLeftEngine.updateValues(btnVal);
+    updateDisplayValues();
   }
 }

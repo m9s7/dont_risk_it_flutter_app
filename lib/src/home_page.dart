@@ -56,13 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPressed: () {
                       if (!_formKey.currentState.validate()) return;
                       _formKey.currentState.save();
-                      //TODO: send data to the next page
-                      print("\n-------");
-                      print(atkVal);
-                      print(defVal);
-                      print(surVal);
-                      print(MediaQuery.of(context).size.height);
-                      print("-------\n");
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -144,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       validator: (String value) {
         int intVal = int.tryParse(value);
-        if (intVal == null || intVal < 1)
+        if (intVal == null || intVal < 2)
           return 'You must have at least 2 tanks left';
         return null;
       },
