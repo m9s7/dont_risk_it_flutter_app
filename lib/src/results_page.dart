@@ -11,7 +11,17 @@ class ResultsPage extends StatefulWidget {
   _ResultsPageState createState() => _ResultsPageState();
 }
 
+// Yeah, I don't like this
+
 class _ResultsPageState extends State<ResultsPage> {
+  static const double minExtent = 0.38;
+  static const double maxExtent = 1;
+
+  bool isExpanded = false;
+  double initialExtent = minExtent;
+  BuildContext draggableSheetContext;
+  String endGameText = "Game over, you won!";
+
   ClassicEngine standardEngine;
   ClassicEngine tanksLeftEngine;
 
@@ -58,10 +68,11 @@ class _ResultsPageState extends State<ResultsPage> {
       drawer: Drawer(),
       body: Center(
         child: Container(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
             children: [
-              Expanded(
+              Positioned(
+                left: 0.0,
+                right: 0.0,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -78,68 +89,92 @@ class _ResultsPageState extends State<ResultsPage> {
                   ],
                 ),
               ),
-              Container(
-                decoration: new BoxDecoration(
-                    color: Colors.cyan[100],
-                    borderRadius: new BorderRadius.only(
-                        topLeft: const Radius.circular(40.0),
-                        topRight: const Radius.circular(40.0))),
-                margin: EdgeInsets.fromLTRB(14.0, 14.0, 14.0, 0.0),
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _getNumberText("$atk"),
-                        _getNumberText("vs"),
-                        _getNumberText("$def"),
-                      ],
-                    ),
-                    _getText("Update your chances!"),
-                    _getText("How many tanks did you lose on this dice roll?"),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.5),
-                      child: ButtonBar(
-                        buttonPadding: EdgeInsets.all(0.0),
-                        alignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                              onPressed: standardEngine.isValidUpdate(0)
-                                  ? () => btnUpdateFunction(0)
-                                  : null,
-                              child: Text("0")),
-                          ElevatedButton(
-                              onPressed: standardEngine.isValidUpdate(1)
-                                  ? () => btnUpdateFunction(1)
-                                  : null,
-                              child: Text("1")),
-                          ElevatedButton(
-                              onPressed: standardEngine.isValidUpdate(2)
-                                  ? () => btnUpdateFunction(2)
-                                  : null,
-                              child: Text("2")),
-                          ElevatedButton(
-                              onPressed: standardEngine.isValidUpdate(3)
-                                  ? () => btnUpdateFunction(3)
-                                  : null,
-                              child: Text("3")),
-                        ],
+              DraggableScrollableActuator(
+                child: DraggableScrollableSheet(
+                  key: Key(initialExtent.toString()),
+                  minChildSize: minExtent,
+                  maxChildSize: maxExtent,
+                  initialChildSize: initialExtent,
+                  builder: (BuildContext context,
+                      ScrollController scrollController) {
+                    draggableSheetContext = context;
+                    return SingleChildScrollView(
+                      controller: scrollController,
+                      physics: NeverScrollableScrollPhysics(),
+                      child: Container(
+                        decoration: new BoxDecoration(
+                            color: Colors.cyan[100],
+                            borderRadius: new BorderRadius.only(
+                                topLeft: const Radius.circular(40.0),
+                                topRight: const Radius.circular(40.0))),
+                        margin: EdgeInsets.fromLTRB(14.0, 14.0, 14.0, 0.0),
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _getNumberText("$atk"),
+                                _getNumberText("vs"),
+                                _getNumberText("$def"),
+                              ],
+                            ),
+                            Text("Update your chances!"),
+                            Text(
+                                "How many tanks did you lose on this dice roll?"),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.5),
+                              child: ButtonBar(
+                                buttonPadding: EdgeInsets.all(0.0),
+                                alignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ElevatedButton(
+                                      onPressed: standardEngine.isValidUpdate(0)
+                                          ? () => btnUpdateFunction(0)
+                                          : null,
+                                      child: Text("0")),
+                                  ElevatedButton(
+                                      onPressed: standardEngine.isValidUpdate(1)
+                                          ? () => btnUpdateFunction(1)
+                                          : null,
+                                      child: Text("1")),
+                                  ElevatedButton(
+                                      onPressed: standardEngine.isValidUpdate(2)
+                                          ? () => btnUpdateFunction(2)
+                                          : null,
+                                      child: Text("2")),
+                                  ElevatedButton(
+                                      onPressed: standardEngine.isValidUpdate(3)
+                                          ? () => btnUpdateFunction(3)
+                                          : null,
+                                      child: Text("3")),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Reset"),
+                              ),
+                            ),
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height / 4,
+                            ),
+                            Container(
+                              height: MediaQuery.of(context).size.height,
+                              child: _getText(endGameText),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text("Reset"),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -177,6 +212,13 @@ class _ResultsPageState extends State<ResultsPage> {
       def = standardEngine.getDef();
       winChance = standardEngine.getResult();
       winChanceWithSur = tanksLeftEngine.getResult();
+      if (atk == 1) {
+        endGameText = "Game over, you lose.";
+        _toggleDraggableScrollableSheet();
+      } else if (def == 0) {
+        endGameText = "Game over, you won!";
+        _toggleDraggableScrollableSheet();
+      }
     });
   }
 
@@ -184,5 +226,15 @@ class _ResultsPageState extends State<ResultsPage> {
     standardEngine.updateValues(btnVal);
     tanksLeftEngine.updateValues(btnVal);
     updateDisplayValues();
+  }
+
+  void _toggleDraggableScrollableSheet() {
+    if (draggableSheetContext != null) {
+      setState(() {
+        initialExtent = isExpanded ? minExtent : maxExtent;
+        isExpanded = !isExpanded;
+      });
+      DraggableScrollableActuator.reset(draggableSheetContext);
+    }
   }
 }
