@@ -3,6 +3,10 @@
 An app made in flutter for calculating your chances of winning a battle in a game of RiSiKo!
 
 Achieving this repo because app needs to be migrated to Android embedding v2, and a way of doing that is by creating a new app and copying code over to it [per flutter docs](https://docs.flutter.dev/development/platform-integration/android/androidx-migration)     
+
+- updated version [here](https://github.com/m9s7/Dont_Risk_It)
+- updated version with better UI [here](https://github.com/m9s7/Dont_Risk_It_complexUI)
+
 ```
 Warning
 ──────────────────────────────────────────────────────────────────────────────
